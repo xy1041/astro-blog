@@ -9,6 +9,12 @@ export default defineConfig({
 	site: 'https://your-username.github.io',
 	base: '/your-repo-name',
 	integrations: [mdx(), sitemap()],
+	markdown: {
+		shikiConfig: {
+			theme: 'github-dark',
+			wrap: true,
+		},
+	},
 	fonts: [
 		{
 			provider: fontProviders.local(),

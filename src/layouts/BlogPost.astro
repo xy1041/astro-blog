@@ -80,7 +80,68 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 					<slot />
 				</div>
 			</article>
-		</main>
+		<script>
+			function injectCopyButtons() {
+				document.querySelectorAll('pre:not([data-copy-injected])').forEach((pre) => {
+					pre.setAttribute('data-copy-injected', 'true');
+					pre.style.position = 'relative';
+					const button = document.createElement('button');
+					button.type = 'button';
+					button.setAttribute('aria-label', '复制代码');
+					button.setAttribute('data-copy-code', '');
+					button.className = 'copy-code-button';
+					button.innerHTML = '<span aria-hidden="true">📋</span><span class="copy-text">复制</span>';
+					pre.appendChild(button);
+				});
+			}
+
+			injectCopyButtons();
+			document.addEventListener('astro:page-load', injectCopyButtons);
+
+			document.addEventListener('click', async (event) => {
+				const button = event.target.closest('[data-copy-code]');
+				if (!button) return;
+				const pre = button.closest('pre');
+				if (!pre) return;
+				const code = pre.querySelector('code');
+				if (!code) return;
+				try {
+					await navigator.clipboard.writeText(code.innerText);
+					button.classList.add('copied');
+					button.querySelector('.copy-text').textContent = '已复制';
+					setTimeout(() => {
+						button.classList.remove('copied');
+						button.querySelector('.copy-text').textContent = '复制';
+					}, 2000);
+				} catch (err) {
+					console.error('复制失败:', err);
+				}
+			});
+		</script>
+
+		<style is:global>
+			.copy-code-button {
+				position: absolute;
+				top: 0.5rem;
+				right: 0.5rem;
+				padding: 0.25rem 0.5rem;
+				background: rgba(255, 255, 255, 0.1);
+				border: 1px solid rgba(255, 255, 255, 0.2);
+				border-radius: 4px;
+				color: inherit;
+				cursor: pointer;
+				font-size: 0.75rem;
+				opacity: 0;
+				transition: opacity 0.2s;
+			}
+			pre:hover .copy-code-button {
+				opacity: 1;
+			}
+			.copy-code-button.copied {
+				background: rgba(34, 197, 94, 0.2);
+			}
+		</style>
+	</main>
 		<Footer />
 	</body>
 </html>
