@@ -1,0 +1,146 @@
+---
+---
+
+<div id="search" class="search-container">
+  <input
+    type="search"
+    id="search-input"
+    placeholder="搜索文章..."
+    class="search-input"
+    aria-label="搜索文章"
+  />
+  <div id="search-results" class="search-results" hidden></div>
+</div>
+
+<style>
+  .search-container {
+    position: relative;
+    display: inline-block;
+  }
+  .search-input {
+    padding: 0.4em 0.8em;
+    border: 1px solid rgba(var(--gray), 0.5);
+    border-radius: 4px;
+    background: rgba(var(--background), 0.8);
+    color: rgb(var(--black));
+    font-size: 0.9em;
+    width: 180px;
+  }
+  .search-input:focus {
+    outline: none;
+    border-color: rgb(var(--accent));
+  }
+  .search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 4px;
+    background: rgb(var(--background));
+    border: 1px solid rgba(var(--gray), 0.3);
+    border-radius: 4px;
+    max-height: 400px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  .search-results:empty {
+    display: none;
+  }
+</style>
+
+<script>
+  let pagefindUI: any = null;
+
+  async function loadPagefind() {
+    if (pagefindUI) return pagefindUI;
+    try {
+      // @ts-ignore
+      const pagefind = await import(/* @vite-ignore */ '/pagefind/pagefind-ui.js');
+      await pagefind.init();
+      pagefindUI = pagefind;
+      return pagefindUI;
+    } catch (e) {
+      console.warn('Pagefind not loaded yet (only works in build output)');
+      return null;
+    }
+  }
+
+  const input = document.getElementById('search-input') as HTMLInputElement | null;
+  const results = document.getElementById('search-results');
+
+  if (input && results) {
+    let debounceTimer: number;
+    input.addEventListener('input', (e) => {
+      const query = (e.target as HTMLInputElement).value.trim();
+      clearTimeout(debounceTimer);
+      if (!query) {
+        results.hidden = true;
+        results.innerHTML = '';
+        return;
+      }
+      debounceTimer = window.setTimeout(async () => {
+        const pagefind = await loadPagefind();
+        if (!pagefind) return;
+        const search = await pagefind.search(query);
+        const top = search.results.slice(0, 8);
+        const html = await Promise.all(
+          top.map(async (r: any) => {
+            const data = await r.data();
+            return `<div class="search-result-item">
+              <a href="${data.url}">
+                <div class="search-result-title">${data.meta?.title || data.url}</div>
+                <div class="search-result-excerpt">${data.excerpt}</div>
+              </a>
+            </div>`;
+          })
+        );
+        results.innerHTML = html.join('');
+        results.hidden = html.length === 0;
+      }, 200);
+    });
+
+    // 点击外部关闭
+    document.addEventListener('click', (e) => {
+      if (!results.contains(e.target as Node) && e.target !== input) {
+        results.hidden = true;
+      }
+    });
+
+    // 点击输入框重新显示
+    input.addEventListener('focus', () => {
+      if (results.innerHTML) results.hidden = false;
+    });
+  }
+</script>
+
+<style is:global>
+  .search-result-item {
+    padding: 0.6em 0.8em;
+    border-bottom: 1px solid rgba(var(--gray), 0.2);
+  }
+  .search-result-item:last-child {
+    border-bottom: none;
+  }
+  .search-result-item a {
+    text-decoration: none;
+    display: block;
+  }
+  .search-result-title {
+    color: rgb(var(--black));
+    font-weight: 500;
+    font-size: 0.9em;
+    margin-bottom: 0.2em;
+  }
+  .search-result-excerpt {
+    color: rgb(var(--gray-dark));
+    font-size: 0.8em;
+    line-height: 1.4;
+  }
+  .search-result-excerpt mark {
+    background: rgba(var(--accent), 0.3);
+    color: inherit;
+    padding: 0 2px;
+    border-radius: 2px;
+  }
+</style>
