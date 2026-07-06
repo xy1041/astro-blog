@@ -1,0 +1,90 @@
+---
+import { getCollection } from 'astro:content';
+import BaseHead from '../../components/BaseHead.astro';
+import Footer from '../../components/Footer.astro';
+import FormattedDate from '../../components/FormattedDate.astro';
+import Header from '../../components/Header.astro';
+import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
+
+export async function getStaticPaths() {
+	const posts = await getCollection('blog');
+	const tags = new Set<string>();
+	posts.forEach((post) => post.data.tags.forEach((t) => tags.add(t)));
+	return [...tags].map((tag) => ({
+		params: { tag },
+		props: {
+			tag,
+			posts: posts
+				.filter((p) => p.data.tags.includes(tag))
+				.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()),
+		},
+	}));
+}
+
+const { tag, posts } = Astro.props;
+---
+
+<!doctype html>
+<html lang="zh-CN">
+	<head>
+		<BaseHead
+			title={`标签: ${tag} - ${SITE_TITLE}`}
+			description={SITE_DESCRIPTION}
+		/>
+		<style>
+			main {
+				width: 720px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 1em;
+			}
+			ul {
+				list-style: none;
+				padding: 0;
+			}
+			li {
+				padding: 1em 0;
+				border-bottom: 1px solid rgba(var(--gray), 0.3);
+			}
+			li a {
+				text-decoration: none;
+			}
+			.title {
+				color: rgb(var(--black));
+				font-size: 1.2em;
+				margin: 0;
+			}
+			.date {
+				color: rgb(var(--gray));
+				font-size: 0.85em;
+				margin: 0.3em 0 0;
+			}
+			li a:hover .title {
+				color: rgb(var(--accent));
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+			<p><a href="/tags">← 所有标签</a></p>
+			<h1>标签: {tag}</h1>
+			<p>共 {posts.length} 篇文章</p>
+			<ul>
+				{
+					posts.map((post) => (
+						<li>
+							<a href={`/blog/${post.id}/`}>
+								<h4 class="title">{post.data.title}</h4>
+								<p class="date">
+									<FormattedDate date={post.data.pubDate} />
+								</p>
+							</a>
+						</li>
+					))
+				}
+			</ul>
+		</main>
+		<Footer />
+	</body>
+</html>

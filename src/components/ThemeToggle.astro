@@ -1,0 +1,49 @@
+---
+---
+
+<button
+	id="theme-toggle"
+	type="button"
+	aria-label="切换深色/浅色主题"
+	title="切换主题"
+>
+	<span class="theme-icon-light">☀️</span>
+	<span class="theme-icon-dark">🌙</span>
+</button>
+
+<style>
+	#theme-toggle {
+		background: none;
+		border: none;
+		cursor: pointer;
+		font-size: 1.2em;
+		padding: 0.5em;
+		border-radius: 4px;
+		transition: background 0.2s;
+		color: inherit;
+	}
+	#theme-toggle:hover {
+		background: rgba(var(--gray), 0.2);
+	}
+	.theme-icon-dark {
+		display: none;
+	}
+	[data-theme='dark'] .theme-icon-dark {
+		display: inline;
+	}
+	[data-theme='dark'] .theme-icon-light {
+		display: none;
+	}
+</style>
+
+<script>
+	const toggle = document.getElementById('theme-toggle');
+	toggle?.addEventListener('click', () => {
+		const current = document.documentElement.getAttribute('data-theme');
+		const next = current === 'dark' ? 'light' : 'dark';
+		document.documentElement.setAttribute('data-theme', next);
+		try {
+			localStorage.setItem('theme', next);
+		} catch {}
+	});
+</script>
