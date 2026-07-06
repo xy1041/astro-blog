@@ -4,6 +4,7 @@ import BaseHead from '../../components/BaseHead.astro';
 import Footer from '../../components/Footer.astro';
 import Header from '../../components/Header.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
+import { withBase } from '../../utils/path';
 
 const posts = await getCollection('blog');
 const tagMap = new Map<string, number>();
@@ -66,7 +67,7 @@ const tags = [...tagMap.entries()].sort((a, b) => b[1] - a[1]);
 				{
 					tags.map(([tag, count]) => (
 						<li>
-							<a href={`/tags/${tag}/`}>
+							<a href={withBase(`/tags/${tag}`)}>
 								{tag}
 								<span class="count">({count})</span>
 							</a>

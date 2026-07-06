@@ -3,16 +3,15 @@ import { SITE_TITLE } from '../consts';
 import HeaderLink from './HeaderLink.astro';
 import Search from './Search.astro';
 import ThemeToggle from './ThemeToggle.astro';
+import { withBase } from '../utils/path';
 ---
 
 <header>
 	<nav>
-		<h2><a href="/">{SITE_TITLE}</a></h2>
+		<h2><a href={withBase('/')}>{SITE_TITLE}</a></h2>
 		<div class="internal-links">
-			<HeaderLink href="/">Home</HeaderLink>
-			<HeaderLink href="/blog">Blog</HeaderLink>
-			<HeaderLink href="/tags">Tags</HeaderLink>
-			<HeaderLink href="/about">About</HeaderLink>
+			<HeaderLink href={withBase('/tags')}>Tags</HeaderLink>
+			<HeaderLink href={withBase('/about')}>About</HeaderLink>
 		</div>
 		<div class="social-links">
 			<Search />
