@@ -58,8 +58,11 @@
   async function loadPagefind() {
     if (pagefindUI) return pagefindUI;
     try {
+      // pagefind 仅在 build 后生成，dev 模式下不存在。
+      // 用 Function 构造动态 import，彻底绕过 Vite 的静态分析。
+      const dynamicImport = new Function('p', 'return import(p)');
       // @ts-ignore
-      const pagefind = await import(/* @vite-ignore */ '/pagefind/pagefind-ui.js');
+      const pagefind = await dynamicImport('/pagefind/pagefind-ui.js');
       await pagefind.init();
       pagefindUI = pagefind;
       return pagefindUI;

@@ -20,7 +20,7 @@ npm install
 npm run dev
 ```
 
-访问 `http://localhost:4321/your-repo-name/`(根据 `astro.config.mjs` 中的 `base` 配置)。
+访问 `http://localhost:4321/astro-blog/`(根据 `astro.config.mjs` 中的 `base` 配置)。
 
 ## 写作
 
@@ -44,7 +44,7 @@ draft: false  # 可选,默认 false
 ### 1. 创建仓库并推送
 
 ```bash
-git remote add origin git@github.com:your-username/your-repo-name.git
+git remote add origin git@github.com:your-username/astro-blog.git
 git branch -M main
 git push -u origin main
 ```
@@ -64,7 +64,7 @@ base: '/your-repo-name',                   // 替换 your-repo-name
 
 ### 4. 推送即部署
 
-每次 push 到 `main` 分支,GitHub Actions 会自动构建并部署。访问 `https://your-username.github.io/your-repo-name/` 查看站点。
+每次 push 到 `main` 分支,GitHub Actions 会自动构建并部署。访问 `https://your-username.github.io/astro-blog/` 查看站点。
 
 ## 技术栈
 
