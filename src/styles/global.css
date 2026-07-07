@@ -60,9 +60,15 @@ h3,
 h4,
 h5,
 h6 {
-	margin: 0 0 0.5rem 0;
+	margin: 1.5em 0 0.5em 0;
 	color: rgb(var(--black));
-	line-height: 1.2;
+	line-height: 1.25;
+}
+h1:first-child,
+h2:first-child,
+h3:first-child,
+h4:first-child {
+	margin-top: 0;
 }
 h1 {
 	font-size: 3.052em;
@@ -90,10 +96,25 @@ a:hover {
 	color: var(--accent);
 }
 p {
-	margin-bottom: 1em;
+	margin-bottom: 1.2em;
 }
 .prose p {
-	margin-bottom: 2em;
+	margin-bottom: 1.2em;
+}
+.prose p:last-child {
+	margin-bottom: 0;
+}
+.prose ul,
+.prose ol {
+	margin: 1.2em 0;
+	padding-left: 1.5em;
+}
+.prose li {
+	margin: 0.4em 0;
+}
+.prose li > ul,
+.prose li > ol {
+	margin: 0.4em 0;
 }
 textarea {
 	width: 100%;
@@ -116,22 +137,31 @@ code {
 	border-radius: 2px;
 }
 pre {
-	padding: 1.5em;
+	padding: 1.2em 1.5em;
 	border-radius: 8px;
 	overflow-x: auto;
+	margin: 1.5em 0;
 }
 pre > code {
 	all: unset;
 }
 blockquote {
 	border-left: 4px solid var(--accent);
-	padding: 0 0 0 20px;
-	margin: 0;
-	font-size: 1.333em;
+	padding: 0.2em 0 0.2em 1.2em;
+	margin: 1.5em 0;
+	font-size: 1.05em;
+	color: rgb(var(--gray));
 }
 hr {
 	border: none;
 	border-top: 1px solid rgb(var(--gray-light));
+	margin: 2.5em 0;
+}
+.prose table {
+	margin: 1.5em 0;
+}
+.prose img {
+	margin: 1.5em 0;
 }
 @media (max-width: 720px) {
 	body {

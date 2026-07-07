@@ -498,3 +498,185 @@ RunCommand 只用于 npm、git 等系统命令。
 ```
 
 每个 Skill 之间是串行的——前一个完成并确认后，才能进入下一个。这就是"结构化工作流"的核心：不是 AI 自由发挥，而是按照预定义的流程和检查点逐步推进。
+
+---
+
+## 后续迭代：内容宽度与排版节奏调整
+
+博客上线后，用户反馈了一个具体的体验问题：
+
+> "该项目的内容宽度太窄了，导致 markdown 流程图很容易换行"
+
+这是一个典型的"真实使用中发现问题 → 进入修复流程"的迭代场景。这次没有走完整的 brainstorming 流程（因为不是创意工作，而是明确的 bug 修复），AI 直接进入了"定位 → 修改 → 验证 → 提交"的紧凑流程。
+
+### 问题定位
+
+AI 先用 `Glob` 和 `Read` 工具浏览项目结构，找到了控制内容宽度的两处 CSS：
+
+```
+src/styles/global.css        → main { width: 720px; }
+src/layouts/BlogPost.astro    → .prose { width: 720px; }
+```
+
+两处都是 720px——对于带流程图、代码块、表格的技术文章来说偏窄。
+
+### 第一轮修改：加宽 + 代码块横向滚动
+
+AI 同步修改了两处宽度，并为 `pre` 标签加了横向滚动：
+
+```css
+/* global.css */
+main {
+    width: 860px;          /* 720 → 860 */
+    max-width: calc(100% - 2em);
+}
+pre {
+    padding: 1.5em;
+    border-radius: 8px;
+    overflow-x: auto;       /* 新增：超宽代码横向滚动而非换行 */
+}
+```
+
+```astro
+/* BlogPost.astro */
+.prose {
+    width: 860px;           /* 720 → 860 */
+    max-width: calc(100% - 2em);
+}
+```
+
+修改完直接提交并推送：
+
+```
+22802dc fix: 加宽正文内容至 860px 并为代码块启用横向滚动
+```
+
+### 第二轮修改：排版节奏优化
+
+宽度改完后，用户要求用浏览器实际看一下效果，并指出"间距不太优雅"。这次 AI 调用了两个 Skill：
+
+1. **agent-browser**：自动化浏览器，打开本地页面、截图、提取计算样式
+2. **frontend-design**：前端设计审美指引
+
+#### 用 agent-browser 量化当前间距
+
+AI 没有凭感觉改，而是先用 `agent-browser eval` 跑了一段 JS 拿到真实计算样式：
+
+```javascript
+agent-browser eval 'JSON.stringify({
+    h2Margin: getComputedStyle(document.querySelector(".prose h2")).margin,
+    pMarginBottom: getComputedStyle(document.querySelector(".prose p")).marginBottom,
+    blockquoteMargin: getComputedStyle(document.querySelector(".prose blockquote")).margin,
+    hrMargin: getComputedStyle(document.querySelector(".prose hr")).margin,
+    preMargin: getComputedStyle(document.querySelector(".prose pre")).margin,
+    titleMargin: getComputedStyle(document.querySelector(".title")).margin
+})'
+```
+
+返回结果暴露了节奏不一致的问题：
+
+| 元素 | 原值 | 问题 |
+|------|------|------|
+| `h2` margin | `0 0 8px` | 标题下方几乎贴着内容，无呼吸感 |
+| `blockquote` margin | `0` | 引用块上下完全无间距 |
+| `hr` margin | `10px 0` | 分隔线太挤 |
+| `.prose p` margin-bottom | `2em`(40px) | 段落间距过大 |
+| `pre` margin | `20px 0` | 代码块上下间距偏紧 |
+| `ul/ol` | 无显式 margin | 列表贴边 |
+
+核心问题：**段落间距大、标题间距小**，垂直节奏反差强烈。
+
+#### 重新设计垂直节奏
+
+基于 frontend-design Skill 的"intentionality, not intensity"原则，AI 重新对齐了所有元素的间距到统一的 1.2em / 1.5em / 2.5em 三档节奏：
+
+```css
+/* 标题：上方留呼吸空间，下方紧凑 */
+h1, h2, h3, h4, h5, h6 {
+    margin: 1.5em 0 0.5em 0;
+    line-height: 1.25;
+}
+h1:first-child, h2:first-child, h3:first-child, h4:first-child {
+    margin-top: 0;     /* 首个标题不需要顶部间距 */
+}
+
+/* 段落：统一 1.2em，最后一个段落不留底部间距 */
+p { margin-bottom: 1.2em; }
+.prose p { margin-bottom: 1.2em; }
+.prose p:last-child { margin-bottom: 0; }
+
+/* 列表：补齐默认间距 */
+.prose ul, .prose ol {
+    margin: 1.2em 0;
+    padding-left: 1.5em;
+}
+.prose li { margin: 0.4em 0; }
+
+/* 代码块、引用块、表格、图片：统一 1.5em 上下间距 */
+pre {
+    padding: 1.2em 1.5em;
+    margin: 1.5em 0;
+    overflow-x: auto;
+}
+blockquote {
+    padding: 0.2em 0 0.2em 1.2em;
+    margin: 1.5em 0;
+    font-size: 1.05em;
+    color: rgb(var(--gray));
+}
+.prose table, .prose img { margin: 1.5em 0; }
+
+/* 分隔线：最宽松，作为章节分隔 */
+hr {
+    border-top: 1px solid rgb(var(--gray-light));
+    margin: 2.5em 0;
+}
+```
+
+#### 同步精简标题块
+
+原文章标题区有 `<hr />` 分隔线 + `padding: 1em 0`，在新节奏下显得冗余，AI 删掉了多余的分隔线并调整了标题区的 margin：
+
+```astro
+/* 删除了 <hr /> */
+.title {
+    margin-bottom: 2em;
+    padding: 0;
+    line-height: 1.2;
+}
+.title h1 { margin: 0.3em 0 0 0; }
+.date {
+    margin-bottom: 0;
+    font-size: 0.9em;
+    color: rgb(var(--gray));
+}
+```
+
+### 这一轮的 AI 行为特点
+
+- **不凭感觉，先量化**：用 agent-browser 拿到真实的 `getComputedStyle` 数值，再决定改什么
+- **统一节奏而非逐个修补**：把所有元素的 margin 对齐到 1.2 / 1.5 / 2.5 三档，而不是各自调一个值
+- **首元素特例处理**：用 `:first-child` 伪类避免首个标题多出顶部间距
+- **删除冗余**：发现标题区的 `<hr />` 在新节奏下多余，直接删除而非保留
+- **Skill 协作**：agent-browser 负责"看"，frontend-design 负责"审美判断"，两者协同
+
+### 工具调用结构
+
+```
+Read global.css / BlogPost.astro    ← 定位宽度来源
+Edit global.css                     ← 第一轮：加宽 + overflow-x
+Edit BlogPost.astro                 ← 第一轮：加宽 .prose
+git commit + push                   ← 第一轮提交
+
+Skill: agent-browser                ← 第二轮：打开页面 + 截图 + eval
+  └─ agent-browser eval             ← 提取计算样式
+Skill: frontend-design              ← 第二轮：审美指引
+Edit global.css                     ← 重新设计垂直节奏
+Edit BlogPost.astro                 ← 精简标题块
+```
+
+### 教训
+
+- **720px 是阅读舒适宽度，但不是技术文章舒适宽度**——技术文章含图表、流程图、代码块，需要更宽的容器
+- **垂直节奏要统一**——段落 2em、标题 0.5rem 这种反差会让页面看起来"段落松散、标题拥挤"
+- **`overflow-x: auto` 比 `white-space: pre-wrap` 更适合代码块**——保留代码原始格式，让用户横向滚动查看
